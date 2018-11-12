@@ -29,7 +29,9 @@ func main() {
 	router.GET("/health", handlers.HealthCheckHandler)
 	router.GET("/health/redis", handlers.HealthRedisHandler)
 	router.GET("/sessions", handlers.GetSessionsHandler)
+	router.GET("/session/:sessionId", ValidateSessionHandler)
 	router.POST("/session", handlers.CreateSessionHandler)
+	router.DELETE("/session/:sessionId", InvalidateSessionHandler)
 
 	// Start the server
 	router.Run(fmt.Sprintf(":%d", ApplicationDefaultPort))

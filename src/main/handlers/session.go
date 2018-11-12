@@ -45,3 +45,26 @@ func GetSessionsHandler(ctx *gin.Context) {
 	keyValues, _ := services.GetSessions(DefaultLimit)
 	ctx.JSON(http.StatusOK, gin.H{"data": keyValues})
 }
+
+func ValidateSessionHandler(ctx *gin.Context) {
+	sessionId := ctx.Param("session-id")
+	token, err := services.GetTokenBySession(sessionId)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"status": "Unauthorized"})
+	}
+	ctx.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func InvalidateSessionHandler(ctx *gin.Context) {
+	sessionId := ctx.Param("session-id")
+	e := services.DeleteSession(sessionId)
+	if e != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"success":    false,
+			"session-id": sessionId,
+		})
+	} else {
+		ctx.JSON(http.StatusNoContent, gin.H{})
+	}
+
+}

@@ -15,14 +15,18 @@ const SessionDefaultTimeout = 3600
 const RedisPort = ":6379"
 
 //*********************************************************
+// Models
+//*********************************************************
+
+type stringTuple struct {
+	k, v string
+}
+
+//*********************************************************
 
 func createSessionId() string {
 	source := rand.NewSource(time.Now().UnixNano())
 	return utils.RandomString(32, source)
-}
-
-type stringTuple struct {
-	k, v string
 }
 
 func zip(k, v []string) ([]stringTuple, error) {
@@ -35,6 +39,7 @@ func zip(k, v []string) ([]stringTuple, error) {
 	}
 	return r, nil
 }
+
 
 //*********************************************************
 // Public functions
@@ -87,4 +92,24 @@ func GetSessions(limit int) ([]stringTuple, error) {
 		}
 	}
 	return zip(keys, values)
+}
+
+
+func GetTokenBySession(sessionId string) (string, error) {
+	c := MyPool.Get()
+	token, e := redis.String(c.Do("MGET", sessionId))
+	if e != nil {
+		return "", fmt.Errorf("GetTokenBySession: could not find token for session %s", sessionId)
+	}
+
+	expiration := time.Duration(SessionDefaultTimeout)
+	c.Do("SETEX", token, expiration, sessionId)
+	return token, nil
+}
+
+
+func DeleteSession(sessionId string) error {
+	cxn := MyPool.Get()
+	_, err := cxn.Do("DEL", sessionId)
+	return err
 }
