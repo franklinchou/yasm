@@ -7,11 +7,6 @@ import (
 )
 
 //*********************************************************
-// Defaults
-//*********************************************************
-const DefaultLimit = 100
-
-//*********************************************************
 // Models
 //*********************************************************
 type createSessionRequest struct {
@@ -42,7 +37,7 @@ func SessionGetHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusForbidden, gin.H{"status": "Unauthorized"})
 		return
 	}
-	keyValues, _ := services.GetSessions(DefaultLimit)
+	keyValues, _ := services.GetSessions()
 	ctx.JSON(http.StatusOK, gin.H{"data": keyValues})
 }
 
