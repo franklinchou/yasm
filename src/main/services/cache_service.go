@@ -3,10 +3,8 @@ package services
 import (
 	"time"
 	"math/rand"
-	//"github.com/go-redis/redis"
 	"github.com/gomodule/redigo/redis"
 	"../utils"
-	//"fmt"
 )
 
 //*********************************************************
