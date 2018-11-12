@@ -110,6 +110,12 @@ func GetTokenBySession(sessionId string) (string, error) {
 
 func DeleteSession(sessionId string) error {
 	cxn := MyPool.Get()
-	_, err := cxn.Do("DEL", sessionId)
+	r, err := redis.Int(cxn.Do("DEL", sessionId))
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return fmt.Errorf("DeleteSession: could not delete session %s", sessionId)
+	}
 	return err
 }
