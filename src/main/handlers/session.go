@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"../models"
 	"net/http"
+	"../models"
+	"../services"
 )
 
 func CreateSessionHandler(ctx *gin.Context) {
@@ -15,6 +16,6 @@ func CreateSessionHandler(ctx *gin.Context) {
 		return
 	}
 
-	sessionId := createSession("", req.token)
-	ctx.JSON(http.StatusOK, gin.H{"session_id": sessionId})
+	sessionId := services.CreateSession(req.Token)
+	ctx.JSON(http.StatusOK, gin.H{"session-id": sessionId})
 }
