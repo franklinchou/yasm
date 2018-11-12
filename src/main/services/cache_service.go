@@ -15,31 +15,11 @@ const SessionDefaultTimeout = 3600
 const RedisPort = ":6379"
 
 //*********************************************************
-// Models
-//*********************************************************
-
-type stringTuple struct {
-	k, v string
-}
-
-//*********************************************************
 
 func createSessionId() string {
 	source := rand.NewSource(time.Now().UnixNano())
 	return utils.RandomString(32, source)
 }
-
-func zip(k, v []string) ([]stringTuple, error) {
-	if len(k) != len(v) {
-		return nil, fmt.Errorf("zip: cannot zip data sets of different length")
-	}
-	r := make([]stringTuple, len(k), len(v))
-	for i, key := range k {
-		r[i] = stringTuple{key, v[i]}
-	}
-	return r, nil
-}
-
 
 //*********************************************************
 // Public functions
@@ -63,6 +43,10 @@ func Ping(c redis.Conn) error {
 	return nil
 }
 
+// Create a new session associated with a given token
+// Note that when a token already has an associated session, calling
+// this function again will create a new session, replacing/invalidating
+// the old session.
 func CreateSession(token string) (string, string) {
 	cxn := MyPool.Get()
 	sessionId := createSessionId()
@@ -70,50 +54,42 @@ func CreateSession(token string) (string, string) {
 	return token, sessionId // TODO Return the actual result from Do
 }
 
-func GetSessions(limit int) ([]stringTuple, error) {
+func GetSessions(limit int) ([][]string, error) {
 	cxn := MyPool.Get()
-	iter := 0
-	keys := make([]string, 0)
-	values := make([]string, 0)
-	for {
-		if arr, err := redis.Values(cxn.Do("SCAN", iter)); err != nil {
-			panic(err)
-		} else {
-			iter, _ = redis.Int(arr[0], nil)
-			k, _ := redis.String(arr[1], nil)
-			v, _ := redis.String(cxn.Do("MGET", arr[1], nil))
-			keys = append(keys, k)
-			values = append(values, v)
-		}
-
-		if iter == 0 {
-			break
-		}
+	keys, err := redis.Strings(cxn.Do("KEYS", "*"))
+	result := make([][]string, 0)
+	if err != nil {
+		return result, fmt.Errorf("GetSessions: could not retrieve sessions")
 	}
-	return zip(keys, values)
+	for _, k := range keys {
+		strtup2 := make([]string, 2)
+		strtup2[0] = k
+		strtup2[1], _ = redis.String(cxn.Do("GET", k))
+		result = append(result, strtup2)
+	}
+	return result, nil
 }
 
+func GetSessionByToken(t string) (string, error) {
+	cxn := MyPool.Get()
+	sessionId, e := redis.String(cxn.Do("GET", t))
 
-func GetTokenBySession(sessionId string) (string, error) {
-	c := MyPool.Get()
-	token, e := redis.String(c.Do("MGET", sessionId))
 	if e != nil {
-		return "", fmt.Errorf("GetTokenBySession: could not find token for session %s", sessionId)
+		return "", fmt.Errorf("GetTokenBySession: could not find session for token %s", t)
 	}
 
-	c.Do("SETEX", token, SessionDefaultTimeout, sessionId)
-	return token, nil
+	cxn.Do("SETEX", t, SessionDefaultTimeout, sessionId)
+	return sessionId, nil
 }
 
-
-func DeleteSession(sessionId string) error {
+func DeleteSession(token string) error {
 	cxn := MyPool.Get()
-	r, err := redis.Int(cxn.Do("DEL", sessionId))
+	r, err := redis.Int(cxn.Do("DEL", token))
 	if err != nil {
 		return err
 	}
 	if r == 0 {
-		return fmt.Errorf("DeleteSession: could not delete session %s", sessionId)
+		return fmt.Errorf("DeleteSession: could not delete session %s", token)
 	}
 	return err
 }

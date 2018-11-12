@@ -47,22 +47,23 @@ func SessionGetHandler(ctx *gin.Context) {
 }
 
 func SessionValidateHandler(ctx *gin.Context) {
-	sessionId := ctx.Param("sessionId")
-	token, err := services.GetTokenBySession(sessionId)
+	token := ctx.Param("token")
+	sessionId, err := services.GetSessionByToken(token)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"status": "Unauthorized"})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"token": token})
+	ctx.JSON(http.StatusOK, gin.H{"session-id": sessionId})
 }
 
 func SessionInvalidateHandler(ctx *gin.Context) {
-	sessionId := ctx.Param("sessionId")
-	e := services.DeleteSession(sessionId)
+	token := ctx.Param("token")
+	e := services.DeleteSession(token)
 	if e != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"success":    false,
-			"session-id": sessionId,
+			"user-token": token,
+			"error":      e.Error(),
 		})
 		return
 	}
