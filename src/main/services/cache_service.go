@@ -1,18 +1,36 @@
 package services
 
 import (
-	"time"
+	"os"
 	"fmt"
-	"math/rand"
 	"github.com/gomodule/redigo/redis"
+	"time"
+	"math/rand"
 	"../utils"
+	"strconv"
 )
 
 //*********************************************************
 // Defaults
 //*********************************************************
-const SessionDefaultTimeout = 3600
 const RedisPort = ":6379"
+
+var SessionDefaultTimeout int // Session default timeout (in seconds)
+
+func init() {
+	timeoutStr := os.Getenv("SESSION_DEFAULT_TIMEOUT")
+	if timeoutStr == "" {
+		SessionDefaultTimeout = 3600
+		return
+	}
+
+	timeoutInt, e := strconv.Atoi(timeoutStr)
+	if e != nil {
+		SessionDefaultTimeout = timeoutInt
+	}
+
+	return
+}
 
 //*********************************************************
 
@@ -54,7 +72,7 @@ func CreateSession(token string) (string, string) {
 	return token, sessionId // TODO Return the actual result from Do
 }
 
-func GetSessions(limit int) ([][]string, error) {
+func GetSessions() ([][]string, error) {
 	cxn := MyPool.Get()
 	keys, err := redis.Strings(cxn.Do("KEYS", "*"))
 	result := make([][]string, 0)
