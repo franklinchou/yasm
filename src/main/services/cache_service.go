@@ -65,9 +65,8 @@ func Ping(c redis.Conn) error {
 
 func CreateSession(token string) (string, string) {
 	cxn := MyPool.Get()
-	expiration := time.Duration(SessionDefaultTimeout)
 	sessionId := createSessionId()
-	cxn.Do("SETEX", token, expiration, sessionId)
+	cxn.Do("SETEX", token, SessionDefaultTimeout, sessionId)
 	return token, sessionId // TODO Return the actual result from Do
 }
 
@@ -102,8 +101,7 @@ func GetTokenBySession(sessionId string) (string, error) {
 		return "", fmt.Errorf("GetTokenBySession: could not find token for session %s", sessionId)
 	}
 
-	expiration := time.Duration(SessionDefaultTimeout)
-	c.Do("SETEX", token, expiration, sessionId)
+	c.Do("SETEX", token, SessionDefaultTimeout, sessionId)
 	return token, nil
 }
 
