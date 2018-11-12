@@ -5,15 +5,16 @@ import (
 	"math/rand"
 	"github.com/go-redis/redis"
 	"../utils"
+	"fmt"
 )
 
 //*********************************************************
 // Application defaults
 //*********************************************************
 const SessionDefaultTimeout = 120
-const RedisHost = "http://localhost:8000"
+const RedisHost = "localhost"
+const RedisPort = 6379
 const RedisPassword = ""
-
 
 //*********************************************************
 
@@ -21,9 +22,10 @@ type RedisClient interface {
 	Connect() (*redis.Client)
 }
 
-func connect() *redis.Client {
+func Connect() *redis.Client {
+	RedisAddress := fmt.Sprintf("%s:%d", RedisHost, RedisPort)
 	redisOptions := redis.Options{
-		Addr:     RedisHost,
+		Addr:     RedisAddress,
 		Password: RedisPassword,
 		DB:       0,
 	}
@@ -38,6 +40,6 @@ func createSessionId() string {
 func CreateSession(token string) string {
 	expiration := time.Duration(SessionDefaultTimeout)
 	sessionId := createSessionId()
-	connect().Set(sessionId, token, expiration)
+	Connect().Set(sessionId, token, expiration)
 	return sessionId
 }
