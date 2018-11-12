@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"./handlers"
-	"fmt"
+	"./services"
+	"github.com/gomodule/redigo/redis"
 )
 
 //*********************************************************
@@ -11,7 +13,15 @@ import (
 //*********************************************************
 const ApplicationDefaultPort = 9000
 
+// Provide a redis connection pool
+var MyPool *redis.Pool = services.NewPool()
+
 func main() {
+
+	// Inject the pool into handlers
+	handlers.MyPool = MyPool
+	services.MyPool = MyPool
+
 	router := gin.Default()
 	router.GET("/health", handlers.HealthCheckHandler)
 	router.GET("/health/redis", handlers.HealthRedisHandler)

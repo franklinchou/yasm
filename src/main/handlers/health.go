@@ -11,11 +11,12 @@ func HealthCheckHandler(ctx *gin.Context) {
 }
 
 func HealthRedisHandler(ctx *gin.Context) {
-	_, e := services.Connect().Ping().Result()
+	cxn := MyPool.Get()
+	e := services.Ping(cxn)
 	if e != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
-			"error": e.Error(),
+			"error":   e.Error(),
 		})
 	} else {
 		ctx.JSON(http.StatusOK, gin.H{"success": true})

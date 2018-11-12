@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"github.com/gin-gonic/gin"
 	"../models"
 	"../services"
 )
+
 
 func CreateSessionHandler(ctx *gin.Context) {
 	var req models.CreateSessionRequest

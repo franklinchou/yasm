@@ -3,33 +3,29 @@ package services
 import (
 	"time"
 	"math/rand"
-	"github.com/go-redis/redis"
+	//"github.com/go-redis/redis"
+	"github.com/gomodule/redigo/redis"
 	"../utils"
-	"fmt"
+	//"fmt"
 )
 
 //*********************************************************
 // Application defaults
 //*********************************************************
 const SessionDefaultTimeout = 120
-const RedisHost = "localhost"
-const RedisPort = 6379
-const RedisPassword = ""
+const RedisPort = ":6379"
 
 //*********************************************************
 
-type RedisClient interface {
-	Connect() (*redis.Client)
-}
-
-func Connect() *redis.Client {
-	RedisAddress := fmt.Sprintf("%s:%d", RedisHost, RedisPort)
-	redisOptions := redis.Options{
-		Addr:     RedisAddress,
-		Password: RedisPassword,
-		DB:       0,
+func NewPool() *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:   80,
+		MaxActive: 12000,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", RedisPort)
+			return c, err
+		},
 	}
-	return redis.NewClient(&redisOptions)
 }
 
 func createSessionId() string {
@@ -37,9 +33,18 @@ func createSessionId() string {
 	return utils.RandomString(32, source)
 }
 
+func Ping(c redis.Conn) error {
+	_, e := c.Do("PING")
+	if e != nil {
+		return e
+	}
+	return nil
+}
+
 func CreateSession(token string) string {
 	expiration := time.Duration(SessionDefaultTimeout)
 	sessionId := createSessionId()
-	Connect().Set(sessionId, token, expiration)
+	cxn := MyPool.Get()
+	cxn.Do("SETEX", token, expiration, sessionId)
 	return sessionId
 }
