@@ -20,7 +20,7 @@ type createSessionRequest struct {
 
 //*********************************************************
 
-func CreateSessionHandler(ctx *gin.Context) {
+func SessionCreateHandler(ctx *gin.Context) {
 	var req createSessionRequest
 	err := ctx.BindJSON(&req)
 	noToken := req.Token == ""
@@ -37,7 +37,7 @@ func CreateSessionHandler(ctx *gin.Context) {
 	})
 }
 
-func GetSessionsHandler(ctx *gin.Context) {
+func SessionGetHandler(ctx *gin.Context) {
 	if !DebugMode {
 		ctx.JSON(http.StatusForbidden, gin.H{"status": "Unauthorized"})
 		return
@@ -46,7 +46,7 @@ func GetSessionsHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"data": keyValues})
 }
 
-func ValidateSessionHandler(ctx *gin.Context) {
+func SessionValidateHandler(ctx *gin.Context) {
 	sessionId := ctx.Param("sessionId")
 	token, err := services.GetTokenBySession(sessionId)
 	if err != nil {
@@ -56,7 +56,7 @@ func ValidateSessionHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func InvalidateSessionHandler(ctx *gin.Context) {
+func SessionInvalidateHandler(ctx *gin.Context) {
 	sessionId := ctx.Param("sessionId")
 	e := services.DeleteSession(sessionId)
 	if e != nil {

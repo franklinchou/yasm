@@ -28,10 +28,10 @@ func main() {
 	router := gin.Default()
 	router.GET("/health", handlers.HealthCheckHandler)
 	router.GET("/health/redis", handlers.HealthRedisHandler)
-	router.GET("/sessions", handlers.GetSessionsHandler)
-	router.GET("/session/:sessionId", handlers.ValidateSessionHandler)
-	router.POST("/session", handlers.CreateSessionHandler)
-	router.DELETE("/session/:sessionId", handlers.InvalidateSessionHandler)
+	router.GET("/sessions", handlers.SessionGetHandler)
+	router.GET("/session/:sessionId", handlers.SessionValidateHandler)
+	router.POST("/session", handlers.SessionCreateHandler)
+	router.DELETE("/session/:sessionId", handlers.SessionInvalidateHandler)
 
 	// Start the server
 	router.Run(fmt.Sprintf(":%d", ApplicationDefaultPort))
