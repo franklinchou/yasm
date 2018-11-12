@@ -2,14 +2,14 @@ package services
 
 import (
 	"time"
+	"fmt"
 	"math/rand"
 	"github.com/gomodule/redigo/redis"
 	"../utils"
-	"fmt"
 )
 
 //*********************************************************
-// Application defaults
+// Defaults
 //*********************************************************
 const SessionDefaultTimeout = 3600
 const RedisPort = ":6379"
@@ -45,8 +45,7 @@ func NewPool() *redis.Pool {
 		MaxIdle:   80,
 		MaxActive: 12000,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", RedisPort)
-			return c, err
+			return redis.Dial("tcp", RedisPort)
 		},
 	}
 }

@@ -18,7 +18,7 @@ var MyPool *redis.Pool = services.NewPool()
 
 func main() {
 
-	// Inject the pool into handlers
+	// Inject connection pool into handlers
 	handlers.MyPool = MyPool
 	services.MyPool = MyPool
 
