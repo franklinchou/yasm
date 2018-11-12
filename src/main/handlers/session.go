@@ -3,20 +3,42 @@ package handlers
 import (
 	"net/http"
 	"github.com/gin-gonic/gin"
-	"../models"
 	"../services"
 )
 
+const DefaultLimit = 100
+
+//*********************************************************
+// Models
+//*********************************************************
+type createSessionRequest struct {
+	Token string `form:"token" json:"token"`
+}
+
+//*********************************************************
 
 func CreateSessionHandler(ctx *gin.Context) {
-	var req models.CreateSessionRequest
-
+	var req createSessionRequest
 	err := ctx.BindJSON(&req)
-	if err != nil {
+	noToken := req.Token == ""
+
+	if err != nil || noToken {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "Unauthorized"})
 		return
 	}
 
-	sessionId := services.CreateSession(req.Token)
-	ctx.JSON(http.StatusOK, gin.H{"session-id": sessionId})
+	token, sessionId := services.CreateSession(req.Token)
+	ctx.JSON(http.StatusOK, gin.H{
+		"token":      token,
+		"session-id": sessionId,
+	})
+}
+
+func GetSessionsHandler(ctx *gin.Context) {
+	if !DebugMode {
+		ctx.JSON(http.StatusForbidden, gin.H{"status": "Unauthorized"})
+		return
+	}
+	keyValues, _ := services.GetSessions(DefaultLimit)
+	ctx.JSON(http.StatusOK, gin.H{"data": keyValues})
 }

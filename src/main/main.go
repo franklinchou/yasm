@@ -22,9 +22,13 @@ func main() {
 	handlers.MyPool = MyPool
 	services.MyPool = MyPool
 
+	// Inject debug mode
+	handlers.DebugMode = true // TODO Get from env var
+
 	router := gin.Default()
 	router.GET("/health", handlers.HealthCheckHandler)
 	router.GET("/health/redis", handlers.HealthRedisHandler)
+	router.GET("/sessions", handlers.GetSessionsHandler)
 	router.POST("/session", handlers.CreateSessionHandler)
 
 	// Start the server
